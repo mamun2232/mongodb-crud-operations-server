@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const app = express()
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const { set } = require("express/lib/application");
+const ObjectId = require('mongodb').ObjectId;
 const port = process.env.PORT || 5000
 
 // use middleware 
@@ -52,7 +54,7 @@ async function run(){
 
             //**** */ ebar ja patabo ta ekhane likbo 
 
-            // data database theke jevabe data anbo
+            // data database theke jevabe data anbo (user pawar jonno)
             app.get('/user' , async (req, res) =>{
                   // find oporetion calate hobe  (collection.find()  korte hobe, then data pawar por toArray() korte hobe)
                   const query = {}
@@ -63,8 +65,17 @@ async function run(){
             })
 
 
+            // database theke specipex ekta data anar jonno 
+            app.get('/user/:id' , async (req , res) =>{
+                  // find a document theke findOne() oporetion calate hobe 
+                  const id = req.params.id
+                  const query = {_id: ObjectId(id)}
+                  const result = await useCollection.findOne(query)
+                  res.send(result)
+            })
 
-            //  resive data 
+
+            //  resive data database e patabo(user add)
             app.post('/user' , async (req , res) =>{
                   // insite oporetion calate hobe 
                   const newuser = req.body
@@ -73,6 +84,36 @@ async function run(){
                   // ebar databage e patanor jonno insertOne() diye patiye dite hobe 
                   const result = await useCollection.insertOne(newuser)
                   res.send({result : 'success'})
+            })
+
+            // database theke delect er jonno 
+            app.delete('/user/:id', async ( req , res) =>{
+                  const id = req.params.id
+                  const query = {_id : ObjectId(id)}
+                  const result = await useCollection.deleteOne(query)
+                  res.send(result)
+                  console.log(id);
+
+            })
+             
+            // database update korar jonno 
+            app.put('/user/:id' , (req , res) =>{
+                  // update opretion korte hobe 
+                  const id = req.params.id
+                  const update = req.body
+                  const filter = {_id : ObjectId(id)}
+                  const options = { upsert: true }
+
+                  const updateDoc ={
+                        $set: {
+                              name: update.name,
+                              email: update.email
+                        }
+                       
+                  }
+                  const result = await useCollection.updateOne(filter, updateDoc, options);
+                  res.send(result)
+                  
             })
 
             //**** */ etike mongodb te patiye dewar jonno insertOne() er bitor patiye debo 
